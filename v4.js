@@ -73,6 +73,27 @@ Quaternion.prototype.multiply = function(q){
     )
 }
 
+Quaternion.prototype.mag = function(){
+    return Math.sqrt(this.r * this.r + this.c.x * this.c.x + this.c.y * this.c.y + this.c.z * this.c.z);
+}
+
+Quaternion.prototype.unit = function(){
+    const mag = this.mag();
+    return new Quaternion(
+        this.r / mag,
+        this.c.x / mag,
+        this.c.y / mag,
+        this.c.z / mag,
+    );
+}
+
+Quaternion.prototype.conjugate = function(){
+    return new Quaternion(
+        this.r,
+        new Vector(this.c).multiply(-1),
+    )
+}
+
 Quaternion.prototype.conjugate = function(){
     return new Quaternion(
         this.r,
@@ -95,29 +116,18 @@ function multiplyByConjugate(q, v){
 }
 
 function Camera(){
-    // gimbal lock
     this.pos = new Vector(0, 2, -5);
-    this.rot = new Vector(0, 0, 0); // euler rotations 
+    this.rot = new Quaternion(1, 0, 0, 0);
+    this.pos = new Vector(-4, 2, 2);
+    this.fovAngle = 80;
     this.fovAngle = 80;
     this.fov = 2 * Math.tan(this.fovAngle / 2 * Math.PI / 180)
     this.aspectRatio = 1;
 }
 
-Camera.prototype.totalRotation = function(){
-    let total_rotation = new Quaternion(1, 0, 0, 0);
-    let xrotq = constructRotationQuaternion(new Vector(1, 0, 0), this.rot.x / 2);
-    total_rotation = xrotq.multiply(total_rotation);
-    let yrotq = constructRotationQuaternion(new Vector(0, 1, 0), this.rot.y / 2);
-    total_rotation = yrotq.multiply(total_rotation);
-    let zrotq = constructRotationQuaternion(new Vector(0, 0, 1), this.rot.z / 2);
-    total_rotation = zrotq.multiply(total_rotation);
-    return total_rotation;
-}
-
 Camera.prototype.worldAxisRotated = function(){
 
-    let total_rotation = this.totalRotation();
-    let r = total_rotation.r, x = total_rotation.c.x, y = total_rotation.c.y, z = total_rotation.c.z;
+    let r = this.rot.r, x = this.rot.c.x, y = this.rot.c.y, z = this.rot.c.z;
     return new Vector(
         math.matrix([[1 - 2 * y * y - 2 * z * z], [2 * x * y - 2 * r * z], [2 * x * z + 2 * r * y]]),
         math.matrix([[2 * x * y + 2 * r * z], [1 - 2 * x * x - 2 * z * z], [2 * y * z - 2 * r * x]]),
@@ -155,11 +165,6 @@ class Point{
         var X = XYZM.get([0, 0]);
         var Y = XYZM.get([1, 0]);
         var Z = XYZM.get([2, 0]);
-        let total_rotation = camera.totalRotation();
-        let rotated = total_rotation.multiply(new Quaternion(0, this.pos.x - camera.pos.x, this.pos.y - camera.pos.y, this.pos.z - camera.pos.z).multiply(total_rotation.conjugate()));
-        //X = rotated.c.x;
-        //Y = rotated.c.y;
-        //Z = rotated.c.z;
         var x = X / Z;
         var y = Y / Z;
         return new Vector(
@@ -269,8 +274,8 @@ function render(){
     ctx.fillRect(canvasWidth/2 - 2, canvasHeight/2 - 2, 4, 4);
 }
 
-const movementSpeed = 0.1;
-const rotationSpeed = Math.PI / 100;
+const movementSpeed = 0.15;
+const rotationSpeed = Math.PI / 50;
 
 let interv = setInterval(function(){
     var dx = 0, dy = 0, dz = 0;
@@ -289,9 +294,12 @@ let interv = setInterval(function(){
     if(keyPressed["ArrowLeft"]) dy -= rotationSpeed;
     if(keyPressed["/"]) dz += rotationSpeed;
     if(keyPressed["."]) dz -= rotationSpeed;
-    camera.rot.x += dx;
-    camera.rot.y += dy;
-    camera.rot.z += dz;
+
+    camera.rot = camera.rot.multiply(constructRotationQuaternion(new Vector(1, 0, 0), dx / 2));
+    camera.rot = camera.rot.multiply(constructRotationQuaternion(new Vector(0, 1, 0), dy / 2));
+    camera.rot = camera.rot.multiply(constructRotationQuaternion(new Vector(0, 0, 1), dz / 2));
+    camera.rot = camera.rot.unit();
+
     points.sort(function(a,b){
         return b.distance(camera) - a.distance(camera);
     });

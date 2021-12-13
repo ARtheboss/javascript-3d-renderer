@@ -35,6 +35,11 @@ function Camera(){
     this.aspectRatio = 1;
 }
 
+Camera.prototype.setFov = function(fovAngle){
+    this.fovAngle = fovAngle;
+    this.fov = 2 * this.focalLength * Math.tan(this.fovAngle / 2 * Math.PI / 180)
+}
+
 function rotateVectorAroundOneAxis(v, axis, theta){
     // Rodrigues rotation formula: https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
     let K = math.matrix([[0, -axis.z, axis.y], [axis.z, 0, -axis.x], [-axis.y, axis.x, 0]]);
