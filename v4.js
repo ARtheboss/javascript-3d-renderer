@@ -118,7 +118,6 @@ function multiplyByConjugate(q, v){
 function Camera(){
     this.pos = new Vector(0, 2, -5);
     this.rot = new Quaternion(1, 0, 0, 0);
-    this.pos = new Vector(-4, 2, 2);
     this.fovAngle = 80;
     this.fovAngle = 80;
     this.fov = 2 * Math.tan(this.fovAngle / 2 * Math.PI / 180)

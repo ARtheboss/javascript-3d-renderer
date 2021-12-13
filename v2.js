@@ -27,8 +27,8 @@ Vector.prototype.multiply = function(v){
 function Camera(){
     this.pos = new Vector(0, 2, -5);
     this.rot = new Vector(0, 0, 0);
-    this.pos = new Vector(-4, 2, 2);
-    this.rot = new Vector(0, -Math.PI / 2, 0);
+    //this.pos = new Vector(-4, 2, 2);
+    //this.rot = new Vector(0, -Math.PI / 2, 0);
     this.fovAngle = 80;
     this.focalLength = 5;
     this.fov = 2 * this.focalLength * Math.tan(this.fovAngle / 2 * Math.PI / 180)
